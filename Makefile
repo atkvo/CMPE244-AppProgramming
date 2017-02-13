@@ -69,11 +69,15 @@ CFLAGS += -T "loader.ld"
 CFLAGS += -fmessage-length=0
 # CFLAGS += -std=gnu+11
 CFLAGS += -Xlinker --gc-sections
-CFLAGS += -DBUILD_CFG_MPU=0
 CFLAGS += -fabi-version=0
 CFLAGS += -fno-exceptions
 CFLAGS += -fpermissive
 CFLAGS += -Wall -Wshadow -Wlogical-op -Wfloat-equal
+ifdef WITH_MPU
+	CFLAGS += -DBUILD_CFG_MPU=1
+else
+	CFLAGS += -DBUILD_CFG_MPU=0
+endif
 
 INCLUDE_PATHS += -I.
 INCLUDE_PATHS += -Inewlib
