@@ -22,10 +22,10 @@ INCLUDE_PATHS =
 ## ----------------------------------------
 
 ifdef GCC_BIN_BASE_OVERRIDE
-	CPP = $(GCC_BIN_BASE)/arm-none-eabi-g++
-	CC = $(GCC_BIN_BASE)/arm-none-eabi-gcc
-	OBJCOPY = $(GCC_BIN_BASE)/arm-none-eabi-objcopy
-	LD = $(GCC_BIN_BASE)/arm-none-eabi-ld
+	CPP = $(GCC_BIN_BASE_OVERRIDE)/arm-none-eabi-g++
+	CC = $(GCC_BIN_BASE_OVERRIDE)/arm-none-eabi-gcc
+	OBJCOPY = $(GCC_BIN_BASE_OVERRIDE)/arm-none-eabi-objcopy
+	LD = $(GCC_BIN_BASE_OVERRIDE)/arm-none-eabi-ld
 else
 	CPP = arm-none-eabi-g++
 	CC = arm-none-eabi-gcc
@@ -111,7 +111,7 @@ endif
 ## ------------------
 
 CFLAGS += $(INCLUDE_PATHS)
-CFLAGS += $(LIB_PATHS)
+CFLAGS += $(addprefix -L, $(LIB_PATHS))
 
 all: $(BUILDDIR)/$(EXECUTABLE).hex
 
