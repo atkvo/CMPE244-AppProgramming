@@ -97,7 +97,7 @@ INCLUDE_PATHS += -IL5_Application
 
 ## Handle overrides
 ifdef GCC_BASE_OVERRIDE
-	LIB_PATHS += $(addprefix $(CORTEX_M3_LIB),$(GCC_LIB))
+	LIB_PATHS += $(addprefix $(GCC_LIB), $(CORTEX_M3_LIB))
 else
 	LIB_PATHS += $(CORTEX_M3_LIB)
 endif
