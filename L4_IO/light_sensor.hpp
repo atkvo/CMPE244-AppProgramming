@@ -24,6 +24,7 @@
 #ifndef LIGHT_SENSOR_HPP_
 #define LIGHT_SENSOR_HPP_
 #include <stdint.h>
+#include "singleton_template.hpp"
 
 
 
