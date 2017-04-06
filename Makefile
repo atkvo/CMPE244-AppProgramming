@@ -5,6 +5,13 @@ BUILDDIR = build
 LIB_PATHS = 
 INCLUDE_PATHS = 
 
+# SJONE BOARD PROGRAMMING
+HYPERLOAD_PATH = ./hyperload.py
+HYPERLOAD_PORT =  /dev/tty.usbserial-A503JOHW
+
+# COMMNICATION SETTING
+BAUD_RATE = 38400
+
 ## Uncomment below to enable build WITH mpu
 # WITH_MPU = 1
 
@@ -137,6 +144,12 @@ $(BUILDDIR)/%.c.o: %.c
 	mkdir -p $(BUILDDIR)/$(shell dirname $<)
 	# $(CC) $(CFLAGS) -c $< -o $(BUILDDIR)/$@
 	$(CC) $(CFLAGS) -c $< -o $@
+
+program:
+	python $(HYPERLOAD_PATH) -f $(BUILDDIR)/$(EXECUTABLE).hex -p $(HYPERLOAD_PORT)
+
+connect:
+	miniterm.py $(HYPERLOAD_PORT) $(BAUD_RATE) --rts 0 --dtr 0
 
 clean:
 	# rm -f $(addprefix $(BUILDDIR), $(OBJECTS))
