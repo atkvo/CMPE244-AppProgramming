@@ -37,11 +37,12 @@ bool LightProducer::run(void *param)
 
     samples[samplesCollected] = result;
     samplesCollected++;
-    
+
     if (samplesCollected >= LightProducer::MAX_SAMPLES) {
         lightvalue_t average;
         averageSamples(&average);
         xQueueSend(getSharedObject(shared_lightValues), &average, portMAX_DELAY);
+        samplesCollected = 0;
     }
 
     xEventGroupSetBits(eventGroup, LightProducer::groupBit);
