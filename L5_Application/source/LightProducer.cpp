@@ -17,7 +17,13 @@ bool LightProducer::init(void)
         return false;
     }
 
+    eventGroup = xEventGroupCreate();
+    if (eventGroup == NULL) {
+        return false;
+    }
+
     addSharedObject(shared_lightValues, lightValueQueue);
+    addSharedObject(shared_eventGroup, eventGroup);
     setRunDuration(POLL_RATE_MS);
     return Light_Sensor::getInstance().init();
 }
@@ -29,6 +35,7 @@ bool LightProducer::run(void *param)
     result.lightLevelPercentage = Light_Sensor::getInstance().getPercentValue();
 
     xQueueSend(getSharedObject(shared_lightValues), &result, portMAX_DELAY);
+    xEventGroupSetBits(eventGroup, LightProducer::groupBit);
     return true;
 }
 
