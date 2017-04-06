@@ -3,7 +3,7 @@
 // #include "acceleration_sensor.hpp"
 
 LightProducer::LightProducer(uint8_t priority) :
-        scheduler_task("remote", 1024, priority)
+        scheduler_task("lightproducer", 1024, priority)
 {
 
 }
