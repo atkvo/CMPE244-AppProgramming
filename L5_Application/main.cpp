@@ -23,8 +23,10 @@
  * 			@see L0_LowLevel/lpc_sys.h if you wish to override printf/scanf functions.
  *
  */
+
 #include "tasks.hpp"
-#include "examples/examples.hpp"
+#include "LightProducer.hpp"
+#include "LightConsumer.hpp"
 
 /**
  * The main() creates tasks or "threads".  See the documentation of scheduler_task class at scheduler_task.hpp
@@ -56,6 +58,8 @@ int main(void)
 
     /* Consumes very little CPU, but need highest priority to handle mesh network ACKs */
     scheduler_add_task(new wirelessTask(PRIORITY_CRITICAL));
+    scheduler_add_task(new LightProducer(PRIORITY_MEDIUM));
+    scheduler_add_task(new LightConsumer(PRIORITY_MEDIUM));
 
     /* Change "#if 0" to "#if 1" to run period tasks; @see period_callbacks.cpp */
     #if 0
