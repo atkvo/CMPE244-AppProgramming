@@ -57,7 +57,7 @@ bool Watchdog::run(void *p) {
         if (( taskBits & BIT_1 ) != BIT_1) {
             strcpy(stuckBuffer,"Both tasks are stuck!\n");
         }
-        Storage::append("stuck.txt", stuckBuffer, strlen(stuckBuffer));
+        Storage::append("1:stuck.txt", stuckBuffer, strlen(stuckBuffer));
     }
 
     return true;
