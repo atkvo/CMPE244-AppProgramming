@@ -15,6 +15,7 @@ public:
 	Watchdog(uint8_t priority);
 	bool init(void);
 	bool run(void* p);
+	void recordUsage();
 };
 
 
