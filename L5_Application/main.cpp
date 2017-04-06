@@ -25,7 +25,7 @@
  */
 #include "tasks.hpp"
 #include "examples/examples.hpp"
-
+#include "watchdog.hpp"
 /**
  * The main() creates tasks or "threads".  See the documentation of scheduler_task class at scheduler_task.hpp
  * for details.  There is a very simple example towards the beginning of this class's declaration.
@@ -103,6 +103,10 @@ int main(void)
     #if 0
         scheduler_add_task(new producer());
         scheduler_add_task(new consumer());
+    #endif
+
+    #if 1
+        scheduler_add_task(new Watchdog(PRIORITY_HIGH));
     #endif
 
     /**
