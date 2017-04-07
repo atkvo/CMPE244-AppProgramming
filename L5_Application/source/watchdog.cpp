@@ -10,6 +10,8 @@
 #include "event_groups.h"
 #include "storage.hpp"
 #include "string.h"
+#include "scheduler_task.hpp"
+#include "FreeRTOS.h"
 
 #define BIT_0    ( 1 << 0 )
 #define BIT_1    ( 1 << 1 )
@@ -65,7 +67,7 @@ bool Watchdog::run(void *p) {
 }
 
 void Watchdog::recordUsage() {
-    const int delayInMs = (int)cmdParams;  // cast parameter str to integer
+    const int delayInMs = 0;
 
     if(delayInMs > 0) {
         vTaskResetRunTimeStats();
@@ -83,24 +85,23 @@ void Watchdog::recordUsage() {
     const unsigned portBASE_TYPE uxArraySize =
             uxTaskGetSystemState(&status[0], maxTasks, &totalRunTime);
 
-    output.printf("%10s Sta Pr Stack CPU%%          Time\n", "Name");
-    for(unsigned priorityNum = 0; priorityNum < configMAX_PRIORITIES; priorityNum++)
-    {
+    printf("%10s Sta Pr Stack CPU%%          Time\n", "Name");
         /* Print in sorted priority order */
         for (unsigned i = 0; i < uxArraySize; i++) {
             TaskStatus_t *e = &status[i];
-            if (e->uxBasePriority == priorityNum) {
+            const int16_t match = 0;
+            if ( strcmp(e->pcTaskName,"watchdog") == match) {
                 tasksRunTime += e->ulRunTimeCounter;
 
                 const uint32_t cpuPercent = (0 == totalRunTime) ? 0 : e->ulRunTimeCounter / (totalRunTime/100);
                 const uint32_t timeUs = e->ulRunTimeCounter;
                 const uint32_t stackInBytes = (4 * e->usStackHighWaterMark);
 
-                output.printf("%10s %s %2u %5u %4u %10u us\n",
+                printf("%10s %s %2u %5u %4u %10u us\n",
                               e->pcTaskName, taskStatusTbl[e->eCurrentState], e->uxBasePriority,
                               stackInBytes, cpuPercent, timeUs);
             }
         }
-    }
+
 }
 

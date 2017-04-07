@@ -25,15 +25,11 @@
  */
 
 #include "tasks.hpp"
-<<<<<<< HEAD
 #include "examples/examples.hpp"
 #include "watchdog.hpp"
 #include "LightProducer.hpp"
-=======
-#include "LightProducer.hpp"
 #include "LightConsumer.hpp"
 
->>>>>>> 937d59aeb3b4ba5f660d313ac6e8d00891e7ba30
 /**
  * The main() creates tasks or "threads".  See the documentation of scheduler_task class at scheduler_task.hpp
  * for details.  There is a very simple example towards the beginning of this class's declaration.
@@ -116,7 +112,6 @@ int main(void)
     #endif
 
     #if 1
-        scheduler_add_task(new LightProducer(PRIORITY_MEDIUM));
         scheduler_add_task(new Watchdog(PRIORITY_HIGH));
     #endif
 
