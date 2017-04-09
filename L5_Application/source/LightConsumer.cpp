@@ -1,6 +1,7 @@
 #include "LightConsumer.hpp"
 #include "LightProducer.hpp"
 #include "storage.hpp"
+#include "rtc.h"
 #include <stdio.h>
 
 LightConsumer::LightConsumer(uint8_t priority) :
@@ -30,12 +31,10 @@ bool LightConsumer::run(void *param)
 
     xQueueReceive(lightQueue, &result, portMAX_DELAY);
     
-    // Write to SD here (sensor.txt)
-    // SD CODE
-    // char buf[256] = { 0 };
-    // int len = sprintf(buf, "%i, %i\n", result.lightLevelRaw);
-    // Storage::append("1:sensor.txt", buf, len, 0);
-    // // END SD CODE
+    char buf[256] = { 0 };
+    int len = sprintf(buf, "%s, %i\n", rtc_get_date_time_str(), result.lightLevelRaw);
+    Storage::append("1:sensor.txt", buf, len, 0);
+    
     printf("time, %i\n", result.lightLevelRaw);
 
     xEventGroupSetBits(eventGroup, LightConsumer::groupBit);
