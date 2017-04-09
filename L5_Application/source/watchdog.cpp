@@ -12,6 +12,9 @@
 #include "string.h"
 #include "scheduler_task.hpp"
 #include "FreeRTOS.h"
+#include <malloc.h>
+#include "string.h"
+#include "rtc.h"
 
 #define BIT_0    ( 1 << 0 )
 #define BIT_1    ( 1 << 1 )
@@ -50,23 +53,28 @@ bool Watchdog::run(void *p) {
                         pdTRUE,         // BIT_0 and BIT_1 should be cleared before returning.
                         pdTRUE,         // Wait for both bits
                         1000 );         // Wait a maximum of 1000ms for both bit to be set.
-
+    printf("Bits: %x\n",taskBits);
     if( ( taskBits & ( BIT_0 | BIT_1 ) ) != ( BIT_0 | BIT_1 ) )
     {
-        // xEventGroupWaitBits() returned even though both bits were not set.
-        if (( taskBits & BIT_0 ) != BIT_0) {
-            strcpy(stuckBuffer,"LightProducer Task is stuck\n");
-        }
-        if (( taskBits & BIT_1 ) != BIT_1) {
-            strcpy(stuckBuffer,"LightConsumer Task is stuck\n");
-        }
-        if (( taskBits & BIT_1 ) != BIT_1 && ( taskBits & BIT_0 ) != BIT_0) {
-            strcpy(stuckBuffer,"Both tasks are stuck!\n");
+        //printf("%2x",taskBits);
+        if ( (taskBits & ( BIT_0 | BIT_1 ) ) == 0 ) {
+            sprintf(stuckBuffer,"Both tasks are stuck! TASKBITS: 0x%2x\n",taskBits);
+        } else {
+            if ( ( taskBits & BIT_0) == 0 ) {
+                sprintf(stuckBuffer,"Light Producer Task is stuck TASKBITS: 0x%2x\n",taskBits);
+            }
+            else if ( (taskBits & BIT_1) == 0 ) {
+                sprintf(stuckBuffer,"Light Consumer Task is stuck TASKBITS: 0x%2x\n",taskBits);
+            } else {
+                printf("error\n");
+            }
         }
         Storage::append("1:stuck.txt", stuckBuffer, strlen(stuckBuffer));
+
     } else {
         //printf("");
     }
+
 
     return true;
 }
@@ -89,26 +97,31 @@ void Watchdog::recordUsage() {
     uint32_t tasksRunTime = 0;
     const unsigned portBASE_TYPE uxArraySize =
             uxTaskGetSystemState(&status[0], maxTasks, &totalRunTime);
+    char *usageString = (char *)malloc(sizeof(char) * (uxArraySize + 4) * 64);
+    sprintf(usageString,"\n------------------------------------------\n",usageString);
+    sprintf(usageString,"%s     %s",usageString, rtc_get_date_time_str());
+    sprintf(usageString,"%s------------------------------------------\n",usageString);
 
-    //printf("%10s Sta Pr Stack CPU%%          Time\n", "Name");
+    sprintf(usageString, "%s%10s Sta Pr Stack CPU%%          Time\n",usageString, "Name");
         /* Print in sorted priority order */
         for (unsigned i = 0; i < uxArraySize; i++) {
             TaskStatus_t *e = &status[i];
             const int16_t match = 0;
-            if ( strcmp(e->pcTaskName,"watchdo") == match) {
-                tasksRunTime += e->ulRunTimeCounter;
+            tasksRunTime += e->ulRunTimeCounter;
 
-                const float cpuPercent = (0.0f == totalRunTime) ? 0.0f : (float)e->ulRunTimeCounter / (float)(totalRunTime/100);
-                const uint32_t timeUs = e->ulRunTimeCounter;
-                const uint32_t stackInBytes = (4 * e->usStackHighWaterMark);
+            const uint32_t cpuPercent = (0 == totalRunTime) ? 0 : e->ulRunTimeCounter / (totalRunTime/100);
+            const uint32_t timeUs = e->ulRunTimeCounter;
+            const uint32_t stackInBytes = (4 * e->usStackHighWaterMark);
 
-                // add total cpu times as comparison since 0% isnt very compelling
-                // also figure out how to append a sting before saving the final sttring (char *) to file
-                printf("%10s %s %2u %5u %5.2f %10u us\n",
-                              e->pcTaskName, taskStatusTbl[e->eCurrentState], e->uxBasePriority,
-                              stackInBytes, cpuPercent, timeUs);
-            }
+            // add total cpu times as comparison since 0% isnt very compelling
+            // also figure out how to append a sting before saving the final string (char *) to file
+            sprintf(usageString,"%s%10s %s %2u %5u %4u %10u us\n",usageString,
+                          e->pcTaskName, taskStatusTbl[e->eCurrentState], e->uxBasePriority,
+                          stackInBytes, cpuPercent, timeUs);
+
         }
 
+        printf("%s",usageString);
+        free(usageString);
 }
 

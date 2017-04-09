@@ -6,7 +6,7 @@
 #include <string.h>
 
 LightConsumer::LightConsumer(uint8_t priority) :
-        scheduler_task("consumeroflight", 2 * 1024, priority)
+        scheduler_task("lightcon", 2 * 1024, priority)
 {
 
 }
