@@ -21,7 +21,7 @@ typedef enum {
     shared_eventGroup
 } sharedHandle_t;
 
-Watchdog::Watchdog(uint8_t priority) : scheduler_task("watchdog", 1024*4, priority) {
+Watchdog::Watchdog(uint8_t priority) : scheduler_task("watchdog", 1024*4, priority), CPUtimer(60000) {
     // task runs once every second
     //setRunDuration(1000);
 
@@ -39,7 +39,10 @@ bool Watchdog::run(void *p) {
     static char stuckBuffer[maxBufferSize];
     memset(stuckBuffer, 0, maxBufferSize);
 
-
+    if (CPUtimer.expired()) {
+        CPUtimer.restart();
+        this->recordUsage();
+    }
 
     taskBits = xEventGroupWaitBits(
                         taskEventGroup,    // The event group being tested.
@@ -57,10 +60,12 @@ bool Watchdog::run(void *p) {
         if (( taskBits & BIT_1 ) != BIT_1) {
             strcpy(stuckBuffer,"Task 2 is stuck\n");
         }
-        if (( taskBits & BIT_1 ) != BIT_1) {
+        if (( taskBits & BIT_1 ) != BIT_1 && ( taskBits & BIT_0 ) != BIT_0) {
             strcpy(stuckBuffer,"Both tasks are stuck!\n");
         }
         Storage::append("1:stuck.txt", stuckBuffer, strlen(stuckBuffer));
+    } else {
+        //printf("");
     }
 
     return true;
@@ -90,13 +95,16 @@ void Watchdog::recordUsage() {
         for (unsigned i = 0; i < uxArraySize; i++) {
             TaskStatus_t *e = &status[i];
             const int16_t match = 0;
-            if ( strcmp(e->pcTaskName,"watchdog") == match) {
+            printf("%s\n",e->pcTaskName);
+            if ( strcmp(e->pcTaskName,"watchdo") == match) {
                 tasksRunTime += e->ulRunTimeCounter;
 
                 const uint32_t cpuPercent = (0 == totalRunTime) ? 0 : e->ulRunTimeCounter / (totalRunTime/100);
                 const uint32_t timeUs = e->ulRunTimeCounter;
                 const uint32_t stackInBytes = (4 * e->usStackHighWaterMark);
 
+                // add total cpu times as comparison since 0% isnt very compelling
+                // also figure out how to append a sting before saving the final sttring (char *) to file
                 printf("%10s %s %2u %5u %4u %10u us\n",
                               e->pcTaskName, taskStatusTbl[e->eCurrentState], e->uxBasePriority,
                               stackInBytes, cpuPercent, timeUs);

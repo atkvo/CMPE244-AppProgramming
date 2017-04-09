@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 LightConsumer::LightConsumer(uint8_t priority) :
-        scheduler_task("consumeroflight", 1024, priority)
+        scheduler_task("consumeroflight", 2 * 1024, priority)
 {
 
 }
@@ -35,7 +35,7 @@ bool LightConsumer::run(void *param)
     int len = sprintf(buf, "%s, %i\n", rtc_get_date_time_str(), result.lightLevelRaw);
     Storage::append("1:sensor.txt", buf, len, 0);
     
-    printf("time, %i\n", result.lightLevelRaw);
+    //printf("time, %i\n", result.lightLevelRaw);
 
     xEventGroupSetBits(eventGroup, LightConsumer::groupBit);
     return true;
