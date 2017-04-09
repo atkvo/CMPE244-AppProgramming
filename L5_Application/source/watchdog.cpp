@@ -55,10 +55,10 @@ bool Watchdog::run(void *p) {
     {
         // xEventGroupWaitBits() returned even though both bits were not set.
         if (( taskBits & BIT_0 ) != BIT_0) {
-            strcpy(stuckBuffer,"Task 1 is stuck\n");
+            strcpy(stuckBuffer,"LightProducer Task is stuck\n");
         }
         if (( taskBits & BIT_1 ) != BIT_1) {
-            strcpy(stuckBuffer,"Task 2 is stuck\n");
+            strcpy(stuckBuffer,"LightConsumer Task is stuck\n");
         }
         if (( taskBits & BIT_1 ) != BIT_1 && ( taskBits & BIT_0 ) != BIT_0) {
             strcpy(stuckBuffer,"Both tasks are stuck!\n");
@@ -90,22 +90,21 @@ void Watchdog::recordUsage() {
     const unsigned portBASE_TYPE uxArraySize =
             uxTaskGetSystemState(&status[0], maxTasks, &totalRunTime);
 
-    printf("%10s Sta Pr Stack CPU%%          Time\n", "Name");
+    //printf("%10s Sta Pr Stack CPU%%          Time\n", "Name");
         /* Print in sorted priority order */
         for (unsigned i = 0; i < uxArraySize; i++) {
             TaskStatus_t *e = &status[i];
             const int16_t match = 0;
-            printf("%s\n",e->pcTaskName);
             if ( strcmp(e->pcTaskName,"watchdo") == match) {
                 tasksRunTime += e->ulRunTimeCounter;
 
-                const uint32_t cpuPercent = (0 == totalRunTime) ? 0 : e->ulRunTimeCounter / (totalRunTime/100);
+                const float cpuPercent = (0.0f == totalRunTime) ? 0.0f : (float)e->ulRunTimeCounter / (float)(totalRunTime/100);
                 const uint32_t timeUs = e->ulRunTimeCounter;
                 const uint32_t stackInBytes = (4 * e->usStackHighWaterMark);
 
                 // add total cpu times as comparison since 0% isnt very compelling
                 // also figure out how to append a sting before saving the final sttring (char *) to file
-                printf("%10s %s %2u %5u %4u %10u us\n",
+                printf("%10s %s %2u %5u %5.2f %10u us\n",
                               e->pcTaskName, taskStatusTbl[e->eCurrentState], e->uxBasePriority,
                               stackInBytes, cpuPercent, timeUs);
             }

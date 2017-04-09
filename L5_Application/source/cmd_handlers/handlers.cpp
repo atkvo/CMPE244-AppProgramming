@@ -606,6 +606,36 @@ CMD_HANDLER_FUNC(rebootHandler)
     return true;
 }
 
+CMD_HANDLER_FUNC(lightProducerHandler) {
+    scheduler_task *lightProducer = scheduler_task::getTaskPtrByName("lightproducer");
+
+    if(cmdParams == "resume") {
+        printf("Resuming Light Producer...\n");
+        lightProducer->resume();
+    } else if(cmdParams == "suspend") {
+        printf("Suspending Light Producer...\n");
+        lightProducer->suspend();
+    } else {
+        return false;
+    }
+    return true;
+}
+
+CMD_HANDLER_FUNC(lightConsumerHandler) {
+    scheduler_task *lightConsumer = scheduler_task::getTaskPtrByName("consumeroflight");
+
+    if(cmdParams == "resume") {
+        printf("Resuming Light Consumer...\n");
+        lightConsumer->resume();
+    } else if(cmdParams == "suspend") {
+        printf("Suspending Light Consumer...\n");
+        lightConsumer->suspend();
+    } else {
+        return false;
+    }
+    return true;
+}
+
 #if (SYS_CFG_ENABLE_TLM)
 static void stream_tlm(const char *s, void *arg)
 {
