@@ -121,8 +121,7 @@ bool terminalTask::taskEntry()
                                              "Write buffer to file: commit <filename> <file offset> <num bytes from buffer>");
     cp.addHandler(flashProgHandler, "flash", "'flash <filename>' Will flash CPU with this new binary file");
 
-    cp.addHandler(lightProducerHandler, "lightprod", "control light producer task with 'lightprod suspend' or 'lighprod resume'");
-    cp.addHandler(lightConsumerHandler, "lightcon", "control light consumer task with 'lightcon suspend' or 'lightcon resume'");
+    cp.addHandler(taskOpHandler, "task", "control task with 'task suspend <taskname>' or 'task resume <taskname>'");
 
 
     #if (SYS_CFG_ENABLE_TLM)

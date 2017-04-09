@@ -606,32 +606,24 @@ CMD_HANDLER_FUNC(rebootHandler)
     return true;
 }
 
-CMD_HANDLER_FUNC(lightProducerHandler) {
-    scheduler_task *lightProducer = scheduler_task::getTaskPtrByName("lightproducer");
-
-    if(cmdParams == "resume") {
-        printf("Resuming Light Producer...\n");
-        lightProducer->resume();
-    } else if(cmdParams == "suspend") {
-        printf("Suspending Light Producer...\n");
-        lightProducer->suspend();
+CMD_HANDLER_FUNC(taskOpHandler) {
+    bool resume = cmdParams.beginsWithIgnoreCase("resume");
+    bool suspend = cmdParams.beginsWithIgnoreCase("suspend");
+    cmdParams.eraseFirstWords(1,' ');
+    scheduler_task *task = scheduler_task::getTaskPtrByName(cmdParams.c_str());
+    if (task) {
+        if(resume) {
+            printf("Resuming %s...\n",cmdParams.c_str());
+            task->resume();
+        } else if(suspend) {
+            printf("Suspending %s...\n",cmdParams.c_str());
+            task->suspend();
+        } else {
+            printf("invalid command\n");
+            return false;
+        }
     } else {
-        return false;
-    }
-    return true;
-}
-
-CMD_HANDLER_FUNC(lightConsumerHandler) {
-    scheduler_task *lightConsumer = scheduler_task::getTaskPtrByName("consumeroflight");
-
-    if(cmdParams == "resume") {
-        printf("Resuming Light Consumer...\n");
-        lightConsumer->resume();
-    } else if(cmdParams == "suspend") {
-        printf("Suspending Light Consumer...\n");
-        lightConsumer->suspend();
-    } else {
-        return false;
+        printf("task \"%s\" does not exist\n", cmdParams.c_str());
     }
     return true;
 }
