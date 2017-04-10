@@ -32,7 +32,7 @@ bool LightConsumer::run(void *param)
 
     xQueueReceive(lightQueue, &result, portMAX_DELAY);
     
-    char buf[256] = { 0 };
+    char buf[256] = {0};
     char time[64] = {0};
     const char * time_uncorrected = rtc_get_date_time_str();
     strncpy(time,time_uncorrected , strlen(time_uncorrected)-1);  // remove the newline from the end of the time string

@@ -53,18 +53,18 @@ bool Watchdog::run(void *p) {
                         pdTRUE,         // BIT_0 and BIT_1 should be cleared before returning.
                         pdTRUE,         // Wait for both bits
                         1000 );         // Wait a maximum of 1000ms for both bit to be set.
-    printf("Bits: %x\n",taskBits);
+    xEventGroupClearBits(taskEventGroup, BIT_0 | BIT_1);
+    // printf("Bits: %x\n",taskBits);
     if( ( taskBits & ( BIT_0 | BIT_1 ) ) != ( BIT_0 | BIT_1 ) )
     {
-        //printf("%2x",taskBits);
         if ( (taskBits & ( BIT_0 | BIT_1 ) ) == 0 ) {
-            sprintf(stuckBuffer,"Both tasks are stuck! TASKBITS: 0x%2x\n",taskBits);
+            sprintf(stuckBuffer,"Both tasks are stuck! TASKBITS: 0x%x\n",taskBits);
         } else {
             if ( ( taskBits & BIT_0) == 0 ) {
-                sprintf(stuckBuffer,"Light Producer Task is stuck TASKBITS: 0x%2x\n",taskBits);
+                sprintf(stuckBuffer,"Light Producer Task is stuck TASKBITS: 0x%x\n",taskBits);
             }
             else if ( (taskBits & BIT_1) == 0 ) {
-                sprintf(stuckBuffer,"Light Consumer Task is stuck TASKBITS: 0x%2x\n",taskBits);
+                sprintf(stuckBuffer,"Light Consumer Task is stuck TASKBITS: 0x%x\n",taskBits);
             } else {
                 printf("error\n");
             }
@@ -121,7 +121,7 @@ void Watchdog::recordUsage() {
 
         }
 
-        printf("%s",usageString);
+        Storage::append("1:cpu.txt", usageString, strlen(usageString));
         free(usageString);
 }
 
