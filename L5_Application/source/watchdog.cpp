@@ -46,6 +46,7 @@ bool Watchdog::run(void *p) {
         CPUtimer.restart();
         this->recordUsage();
     }
+    char time[64] = {0};
 
     taskBits = xEventGroupWaitBits(
                         taskEventGroup,    // The event group being tested.
@@ -55,16 +56,19 @@ bool Watchdog::run(void *p) {
                         1000 );         // Wait a maximum of 1000ms for both bit to be set.
     xEventGroupClearBits(taskEventGroup, BIT_0 | BIT_1);
     // printf("Bits: %x\n",taskBits);
+    const char * time_uncorrected = rtc_get_date_time_str();
+    strncpy(time,time_uncorrected , strlen(time_uncorrected)-1);  // remove the newline from the end of the time string
+
     if( ( taskBits & ( BIT_0 | BIT_1 ) ) != ( BIT_0 | BIT_1 ) )
     {
         if ( (taskBits & ( BIT_0 | BIT_1 ) ) == 0 ) {
-            sprintf(stuckBuffer,"Both tasks are stuck! TASKBITS: 0x%x\n",taskBits);
+            sprintf(stuckBuffer,"%s || Light Producer and Consumer tasks are stuck! TASKBITS: 0x%x\n",time,taskBits);
         } else {
             if ( ( taskBits & BIT_0) == 0 ) {
-                sprintf(stuckBuffer,"Light Producer Task is stuck TASKBITS: 0x%x\n",taskBits);
+                sprintf(stuckBuffer,"%s || Light Producer Task is stuck TASKBITS: 0x%x\n",time,taskBits);
             }
             else if ( (taskBits & BIT_1) == 0 ) {
-                sprintf(stuckBuffer,"Light Consumer Task is stuck TASKBITS: 0x%x\n",taskBits);
+                sprintf(stuckBuffer,"%s || Light Consumer Task is stuck TASKBITS: 0x%x\n",time,taskBits);
             } else {
                 printf("error\n");
             }
