@@ -272,6 +272,27 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
 
     switch (mpI2CRegs->I2STAT)
     {
+        case 0x60:
+            mpI2CRegs->I2CONCLR = (1 << 5); // ST
+            mpI2CRegs->I2CONSET = (1 << 2); // AA
+
+            clearSIFlag();
+            break;
+
+        case 0x80:  // check if read address is in bound
+        {
+            uint8_t reg_addr  = mpI2CRegs->I2DAT;
+            if (reg_addr < mSlaveMemSize ) {
+
+            } else {
+
+            }
+            clearSIFlag();
+            break;
+        }
+        // case 0:
+            //mSlaveMem[prev_addr]
+
         case start:
             mpI2CRegs->I2DAT = I2C_WRITE_ADDR(mTransaction.slaveAddr);
             clearSIFlag();

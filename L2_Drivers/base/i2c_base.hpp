@@ -67,7 +67,18 @@
  */
 class I2C_Base
 {
+private:
+        uint8_t *mSlaveMem;
+        size_t mSlaveMemSize;
+
     public:
+        void init_slave(uint8_t addr, uint8_t *slave_mem, size_t mem_size) {
+            mSlaveMem = slave_mem;
+            mSlaveMemSize = mem_size;
+
+            mpI2CRegs->I2ADR0 = 0x65; // pointer to I2C no.2
+            mpI2CRegs->I2MASK0 = 0xFF;
+        }
         /**
          * When the I2C interrupt occurs, this function should be called to handle
          * future action to take due to the interrupt cause.
