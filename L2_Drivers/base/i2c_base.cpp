@@ -273,6 +273,7 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
     #define clearSTARTFlag()    mpI2CRegs->I2CONCLR = (1<<5)
     #define setAckFlag()        mpI2CRegs->I2CONSET = (1<<2)
     #define setNackFlag()       mpI2CRegs->I2CONCLR = (1<<2)
+    #define setAAFlag()         mpI2CRegs->I2CONCLR = (1<<4)
 
     /* yep ... lazy again */
     #define setStop()           clearSTARTFlag();                           \
@@ -286,26 +287,6 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
 
     switch (mpI2CRegs->I2STAT)
     {
-        case 0x60:
-            mpI2CRegs->I2CONCLR = (1 << 5); // ST
-            mpI2CRegs->I2CONSET = (1 << 2); // AA
-
-            clearSIFlag();
-            break;
-
-        case 0x80:  // check if read address is in bound
-        {
-            uint8_t reg_addr  = mpI2CRegs->I2DAT;
-            if (reg_addr < mSlaveMemSize ) {
-
-            } else {
-
-            }
-            clearSIFlag();
-            break;
-        }
-        // case 0:
-            //mSlaveMem[prev_addr]
 
         case start:
             mpI2CRegs->I2DAT = I2C_WRITE_ADDR(mTransaction.slaveAddr);
@@ -388,6 +369,69 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
         case dataNackedBySlave:     // no break
         case readModeNackedBySlave: // no break
         case busError:              // no break
+
+        case slaveAddrAckToMaster:
+            mpI2CRegs->I2CONCLR = (1 << 5); // ST
+            mpI2CRegs->I2CONSET = (1 << 2); // AA
+
+            clearSIFlag();
+            break;
+
+        case slaveAddrNackToMaster:  // check if read address is in bound
+        {
+            uint8_t reg_addr  = mpI2CRegs->I2DAT;
+            if (reg_addr < mSlaveMemSize ) {
+
+            } else {
+
+            }
+            clearSIFlag();
+            break;
+        }
+
+        case slaveStopOrRepeatStart:  // check if read address is in bound
+        {
+            clearSIFlag();
+            setAAFlag();
+            break;
+        }
+
+        case slaveTransmitBeginAck:  // check if read address is in bound
+        {
+
+            //1. Load I2DAT from Slave Transmit buffer with first data byte.
+            //2. Write 0x04 to I2CONSET to set the AA bit.
+            setAAFlag();
+            //3. Write 0x08 to I2CONCLR to clear the SI flag.
+            clearSIFlag();
+            //4. Set up Slave Transmit mode data buffer.
+
+            //5. Increment Slave Transmit buffer pointer.
+
+            break;
+        }
+
+        case dataAckedByMaster:  // check if read address is in bound
+        {
+
+            // Load I2DAT from Slave Transmit buffer with data byte.
+
+            setAAFlag();
+            clearSIFlag();
+            break;
+        }
+
+        case dataNackedByMaster:  // check if read address is in bound
+        {
+
+            setAAFlag();
+            clearSIFlag();
+            break;
+        }
+        // case 0:
+            //mSlaveMem[prev_addr]
+
+
         default:
             mTransaction.error = mpI2CRegs->I2STAT;
             setStop();
