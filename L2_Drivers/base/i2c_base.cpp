@@ -237,6 +237,20 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
         readModeNackedBySlave = 0x48,
         dataAvailableAckSent  = 0x50,
         dataAvailableNackSent = 0x58,
+
+        // Slave Receiver States:
+        slaveAddrAckToMaster        = 0x60,
+        slaveAddrNackToMaster       = 0x80,
+
+        // General Slave State:
+        slaveStopOrRepeatStart      = 0xA0,
+
+        // Slave Transmitter States:
+
+        slaveTransmitBeginAck       = 0xA8,
+        dataAckedByMaster           = 0xB8,
+        dataNackedByMaster          = 0xC0
+
     };
 
     mStateMachineStatus_t state = busy;
