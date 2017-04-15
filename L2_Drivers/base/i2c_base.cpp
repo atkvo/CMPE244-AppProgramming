@@ -240,7 +240,7 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
 
         // Slave Receiver States:
         slaveAddrAckToMaster        = 0x60,
-        slaveAddrNackToMaster       = 0x80,
+        slaveDataReceived           = 0x80,
 
         // General Slave State:
         slaveStopOrRepeatStart      = 0xA0,
@@ -364,35 +364,74 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
             state = I2C_READ_MODE(mTransaction.slaveAddr) ? readComplete : writeComplete;
             mTransaction.error = mpI2CRegs->I2STAT;
             break;
-
-        case slaveAddressNacked:    // no break
-        case dataNackedBySlave:     // no break
-        case readModeNackedBySlave: // no break
-        case busError:              // no break
-
         case slaveAddrAckToMaster:
-            mpI2CRegs->I2CONCLR = (1 << 5); // ST
-            mpI2CRegs->I2CONSET = (1 << 2); // AA
-
-            clearSIFlag();
-            break;
-
-        case slaveAddrNackToMaster:  // check if read address is in bound
         {
-            uint8_t reg_addr  = mpI2CRegs->I2DAT;
-            if (reg_addr < mSlaveMemSize ) {
-
-            } else {
-
+            // mpI2CRegs->I2CONCLR = (1 << 5); // ST
+            uint8_t mode = mpI2CRegs->I2DAT;
+            // If LSb is 0, Slave is receiving from master
+            // If LSb is 1, Slave is tramsitting to master
+            if (mode & 0x01) {
+                mSlaveMode = SLAVE_TX_MODE;
             }
+            else {
+                mSlaveMode = SLAVE_RX_MODE;
+            }
+
+            setAAFlag();
             clearSIFlag();
             break;
         }
 
-        case slaveStopOrRepeatStart:  // check if read address is in bound
+        case slaveDataReceived:
         {
+            uint8_t data  = mpI2CRegs->I2DAT;
+            if (mSlaveRegisterAccepted) {
+                // Start register already received, current byte is a DATA byte
+                if ((mSlaveBaseRegister + mSlaveOffset) < mSlaveMemSize) {
+                    mSlaveOffset++;
+                    mSlaveMem[mSlaveBaseRegister + mSlaveOffset] = data;
+                    setAAFlag();
+                }
+                else {
+                    setNackFlag();
+                    mSlaveRegisterAccepted = false;
+                }
+            }
+            else {
+                // Start register not received, current byte is a REG ADDR byte
+                // Make sure initial register is in bounds
+                if (data < mSlaveMemSize ) {
+                    mSlaveBaseRegister = data;
+                    mSlaveRegisterAccepted = true;
+                    mSlaveOffset = 0;
+                    setAAFlag();
+                } else {
+                    mSlaveBaseRegister = 0x0;
+                    mSlaveRegisterAccepted = false;
+                    mSlaveOffset = 0;
+                    setNackFlag();
+                }
+            }
+
             clearSIFlag();
-            setAAFlag();
+            break;
+        }
+
+        case slaveStopOrRepeatStart:
+        {
+            if (mSlaveMode == SLAVE_RX_MODE) {
+                // STOP received
+                mSlaveRegisterAccepted = false;
+                mSlaveOffset = 0;
+                mSlaveBaseRegister = 0;
+                setAAFlag();
+            }
+            else {
+                // REPEAT START received
+
+            }
+
+            clearSIFlag();
             break;
         }
 
@@ -432,6 +471,10 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
             //mSlaveMem[prev_addr]
 
 
+        case slaveAddressNacked:    // no break
+        case dataNackedBySlave:     // no break
+        case readModeNackedBySlave: // no break
+        case busError:              // no break
         default:
             mTransaction.error = mpI2CRegs->I2STAT;
             setStop();

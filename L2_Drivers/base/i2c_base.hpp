@@ -65,18 +65,29 @@
  *  @endcode
  * @ingroup Drivers
  */
+
 class I2C_Base
 {
 private:
+        enum SlaveModes {
+            SLAVE_RX_MODE,
+            SLAVE_TX_MODE
+        };
+
         uint8_t *mSlaveMem;
         size_t mSlaveMemSize;
+        uint8_t mSlaveBaseRegister;
+        uint32_t mSlaveOffset;
+
+        SlaveModes mSlaveMode;
+        bool mSlaveRegisterAccepted;
 
     public:
-        void init_slave(uint8_t addr, uint8_t *slave_mem, size_t mem_size) {
+        void init_slave(uint8_t slaveAddr, uint8_t *slave_mem, size_t mem_size) {
             mSlaveMem = slave_mem;
             mSlaveMemSize = mem_size;
 
-            mpI2CRegs->I2ADR0 = 0x65; // pointer to I2C no.2
+            mpI2CRegs->I2ADR0 = slaveAddr; // pointer to I2C no.2
             mpI2CRegs->I2MASK0 = 0xFF;
         }
         /**
