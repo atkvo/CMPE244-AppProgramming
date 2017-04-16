@@ -303,7 +303,7 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
                                 else                                        \
                                     state = writeComplete;
 
-    u0_dbg_printf("*** STATE: 0x%2x\n", mpI2CRegs->I2STAT);
+//    u0_dbg_printf("*** STATE: 0x%2x\n", mpI2CRegs->I2STAT);
 
     switch (mpI2CRegs->I2STAT)
     {

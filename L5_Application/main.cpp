@@ -30,6 +30,7 @@
 #include "LightProducer.hpp"
 #include "LightConsumer.hpp"
 #include "I2C_task.hpp"
+#include "i2c_master_task.hpp"
 
 /**
  * The main() creates tasks or "threads".  See the documentation of scheduler_task class at scheduler_task.hpp
@@ -88,6 +89,11 @@ int main(void)
 #if 1
       scheduler_add_task(new i2c_task(PRIORITY_MEDIUM));
 #endif
+
+
+#if 0
+      scheduler_add_task(new i2c_master_task(PRIORITY_MEDIUM));
+#endif
     /**
      * Change "#if 0" to "#if 1" to enable examples.
      * Try these examples one at a time.
@@ -116,7 +122,7 @@ int main(void)
         scheduler_add_task(new consumer());
     #endif
 
-    #if 1
+    #if 0
         scheduler_add_task(new Watchdog(PRIORITY_HIGH));
     #endif
 
