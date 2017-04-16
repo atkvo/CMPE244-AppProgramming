@@ -272,8 +272,9 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
     #define setSTARTFlag()      mpI2CRegs->I2CONSET = (1<<5)
     #define clearSTARTFlag()    mpI2CRegs->I2CONCLR = (1<<5)
     #define setAckFlag()        mpI2CRegs->I2CONSET = (1<<2)
+    #define clearAckFlag()      mpI2CRegs->I2CONCLR = (1<<2)
     #define setNackFlag()       mpI2CRegs->I2CONCLR = (1<<2)
-    #define setAAFlag()         mpI2CRegs->I2CONCLR = (1<<4)
+    #define setStopFlag()       mpI2CRegs->I2CONSET = (1<<4)
 
     /* yep ... lazy again */
     #define setStop()           clearSTARTFlag();                           \
@@ -377,7 +378,7 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
                 mSlaveMode = SLAVE_RX_MODE;
             }
 
-            setAAFlag();
+            setAckFlag();
             clearSIFlag();
             break;
         }
@@ -390,7 +391,7 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
                 if ((mSlaveBaseRegister + mSlaveOffset) < mSlaveMemSize) {
                     mSlaveOffset++;
                     mSlaveMem[mSlaveBaseRegister + mSlaveOffset] = data;
-                    setAAFlag();
+                    setAckFlag();
                 }
                 else {
                     setNackFlag();
@@ -404,7 +405,7 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
                     mSlaveBaseRegister = data;
                     mSlaveRegisterAccepted = true;
                     mSlaveOffset = 0;
-                    setAAFlag();
+                    setAckFlag();
                 } else {
                     mSlaveBaseRegister = 0x0;
                     mSlaveRegisterAccepted = false;
@@ -419,51 +420,74 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
 
         case slaveStopOrRepeatStart:
         {
-            if (mSlaveMode == SLAVE_RX_MODE) {
+            if (mSlaveFirstDataReceived) {
                 // STOP received
                 mSlaveRegisterAccepted = false;
                 mSlaveOffset = 0;
                 mSlaveBaseRegister = 0;
-                setAAFlag();
+                setAckFlag();
             }
             else {
                 // REPEAT START received
-
+                mSlaveMode = SLAVE_TX_MODE;
+                setAckFlag();
             }
 
+            mSlaveFirstDataReceived = false;
             clearSIFlag();
             break;
         }
 
         case slaveTransmitBeginAck:  // check if read address is in bound
         {
+            bool lastByte = false;
+            if (mSlaveBaseRegister + mSlaveOffset == (mSlaveMemSize - 1)) {
+                lastByte = true;
+            }
 
             //1. Load I2DAT from Slave Transmit buffer with first data byte.
-            //2. Write 0x04 to I2CONSET to set the AA bit.
-            setAAFlag();
-            //3. Write 0x08 to I2CONCLR to clear the SI flag.
+            mpI2CRegs->I2DAT = mSlaveMem[mSlaveBaseRegister + mSlaveOffset];
+
+            if (lastByte) {
+                clearAckFlag();
+                // Assume goes to state 0xA0 after
+            }
+            else {
+                setAckFlag();
+                mSlaveOffset++;
+            }
+
             clearSIFlag();
-            //4. Set up Slave Transmit mode data buffer.
-
-            //5. Increment Slave Transmit buffer pointer.
-
             break;
         }
 
         case dataAckedByMaster:  // check if read address is in bound
         {
-
             // Load I2DAT from Slave Transmit buffer with data byte.
+            bool lastByte = false;
+            if (mSlaveBaseRegister + mSlaveOffset == (mSlaveMemSize - 1)) {
+                lastByte = true;
+            }
 
-            setAAFlag();
+            mpI2CRegs->I2DAT = mSlaveMem[mSlaveBaseRegister + mSlaveOffset];
+
+            if (lastByte) {
+                clearAckFlag();
+                // Assume goes to state 0xA0
+            }
+            else {
+                setAckFlag();
+                mSlaveOffset++;
+            }
+
             clearSIFlag();
             break;
         }
 
         case dataNackedByMaster:  // check if read address is in bound
         {
-
-            setAAFlag();
+            // Done reading
+            setAckFlag();
             clearSIFlag();
             break;
         }

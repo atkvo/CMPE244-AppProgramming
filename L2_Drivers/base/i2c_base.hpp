@@ -81,6 +81,7 @@ private:
 
         SlaveModes mSlaveMode;
         bool mSlaveRegisterAccepted;
+        bool mSlaveFirstDataReceived;
 
     public:
         void init_slave(uint8_t slaveAddr, uint8_t *slave_mem, size_t mem_size) {
