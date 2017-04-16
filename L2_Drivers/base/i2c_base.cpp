@@ -368,7 +368,7 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
             break;
         case slaveAddrAckToMaster:
         {
-            u0_dbg_printf("State 0x60");
+            u0_dbg_printf("State 0x60\n");
             // mpI2CRegs->I2CONCLR = (1 << 5); // ST
             uint8_t mode = mpI2CRegs->I2DAT;
             // If LSb is 0, Slave is receiving from master
@@ -387,7 +387,7 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
 
         case slaveDataReceived:
         {
-            u0_dbg_printf("State 0x80");
+            u0_dbg_printf("State 0x80\n");
             uint8_t data  = mpI2CRegs->I2DAT;
             if (mSlaveRegisterAccepted) {
                 // Start register already received, current byte is a DATA byte
@@ -423,7 +423,7 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
 
         case slaveStopOrRepeatStart:
         {
-            u0_dbg_printf("State 0xA0");
+            u0_dbg_printf("State 0xA0\n");
             if (mSlaveFirstDataReceived) {
                 // STOP received
                 mSlaveRegisterAccepted = false;
@@ -468,7 +468,7 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
 
         case dataAckedByMaster:  // check if read address is in bound
         {
-            u0_dbg_printf("State 0xB8");
+            u0_dbg_printf("State 0xB8\n");
             // Load I2DAT from Slave Transmit buffer with data byte.
             bool lastByte = false;
             if (mSlaveBaseRegister + mSlaveOffset == (mSlaveMemSize - 1)) {
@@ -492,7 +492,7 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
 
         case dataNackedByMaster:  // check if read address is in bound
         {
-            u0_dbg_printf("State 0xC0");
+            u0_dbg_printf("State 0xC0\n");
             // Done reading
             setAckFlag();
             clearSIFlag();
