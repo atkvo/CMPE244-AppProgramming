@@ -88,6 +88,7 @@ private:
             mSlaveMem = slave_mem;
             mSlaveMemSize = mem_size;
 
+            mpI2CRegs->I2CONSET = 0x44;
             mpI2CRegs->I2ADR0 = slaveAddr; // pointer to I2C no.2
             mpI2CRegs->I2MASK0 = 0xFF;
         }

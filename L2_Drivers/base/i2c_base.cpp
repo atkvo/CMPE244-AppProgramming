@@ -388,12 +388,15 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
         case slaveDataReceived:
         {
             u0_dbg_printf("State 0x80\n");
+
             uint8_t data  = mpI2CRegs->I2DAT;
+            u0_dbg_printf("Data: %03x",data);
             if (mSlaveRegisterAccepted) {
                 // Start register already received, current byte is a DATA byte
                 if ((mSlaveBaseRegister + mSlaveOffset) < mSlaveMemSize) {
-                    mSlaveOffset++;
                     mSlaveMem[mSlaveBaseRegister + mSlaveOffset] = data;
+                    u0_dbg_printf("Slave Offset: %x\n",mSlaveOffset);
+                    mSlaveOffset++;
                     setAckFlag();
                 }
                 else {
@@ -404,6 +407,7 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
             else {
                 // Start register not received, current byte is a REG ADDR byte
                 // Make sure initial register is in bounds
+                u0_dbg_printf("Assigning Base Register to %x\n",data);
                 if (data < mSlaveMemSize ) {
                     mSlaveBaseRegister = data;
                     mSlaveRegisterAccepted = true;
