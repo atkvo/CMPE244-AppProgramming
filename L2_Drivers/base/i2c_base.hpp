@@ -216,6 +216,8 @@ private:
          * @param len       The length of the I2C transaction
          */
         void i2cKickOffTransfer(uint8_t devAddr, uint8_t regStart, uint8_t* pBytes, uint32_t len);
+
+        void resetSlaveFlags();
 };
 
 
