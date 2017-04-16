@@ -84,14 +84,8 @@ private:
         bool mSlaveFirstDataReceived;
 
     public:
-        void init_slave(uint8_t slaveAddr, uint8_t *slave_mem, size_t mem_size) {
-            mSlaveMem = slave_mem;
-            mSlaveMemSize = mem_size;
-
-            mpI2CRegs->I2CONSET = 0x44;
-            mpI2CRegs->I2ADR0 = slaveAddr; // pointer to I2C no.2
-            mpI2CRegs->I2MASK0 = 0xFF;
-        }
+        void init_slave(uint8_t slaveAddr, uint8_t *slave_mem, size_t mem_size);
+        
         /**
          * When the I2C interrupt occurs, this function should be called to handle
          * future action to take due to the interrupt cause.

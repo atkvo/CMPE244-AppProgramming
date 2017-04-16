@@ -188,7 +188,22 @@ bool I2C_Base::init(uint32_t pclk, uint32_t busRateInKhz)
     return true;
 }
 
+void I2C_Base::init_slave(uint8_t slaveAddr, uint8_t *slave_mem, size_t mem_size)
+ {
+    mSlaveMem = slave_mem;
+    mSlaveMemSize = mem_size;
 
+    mpI2CRegs->I2ADR0 = slaveAddr; // pointer to I2C no.2
+    mpI2CRegs->I2ADR1 = 0;
+    mpI2CRegs->I2ADR2 = 0;
+    mpI2CRegs->I2ADR3 = 0;
+    mpI2CRegs->I2MASK0 = 0xFE;
+    mpI2CRegs->I2MASK1 = 0x00;
+    mpI2CRegs->I2MASK2 = 0x00;
+    mpI2CRegs->I2MASK3 = 0x00;
+
+    mpI2CRegs->I2CONSET = 0x44;
+}
 
 /// Private ///
 
@@ -371,18 +386,8 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
             break;
         case slaveAddrAckToMaster:
         {
-            u0_dbg_printf("State 0x60\n");
-            // mpI2CRegs->I2CONCLR = (1 << 5); // ST
-            uint8_t mode = mpI2CRegs->I2DAT;
-            // If LSb is 0, Slave is receiving from master
-            // If LSb is 1, Slave is tramsitting to master
-            if (mode & 0x01) {
-                mSlaveMode = SLAVE_TX_MODE;
-            }
-            else {
-                mSlaveMode = SLAVE_RX_MODE;
-            }
-
+            uint8_t addr = mpI2CRegs->I2DAT;
+            u0_dbg_printf("State 0x60 -- ADDR: 0x%2x\n", addr);
             setAckFlag();
             clearSIFlag();
             break;
@@ -393,7 +398,7 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
             u0_dbg_printf("State 0x80\n");
 
             uint8_t data  = mpI2CRegs->I2DAT;
-            u0_dbg_printf("Data: %03x",data);
+            u0_dbg_printf("Data: %03x -- ",data);
             if (mSlaveRegisterAccepted) {
                 mSlaveFirstDataReceived = true;
                 // Start register already received, current byte is a DATA byte
@@ -411,13 +416,14 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
             else {
                 // Start register not received, current byte is a REG ADDR byte
                 // Make sure initial register is in bounds
-                u0_dbg_printf("Assigning Base Register to %x\n",data);
                 if (data < mSlaveMemSize ) {
+                    u0_dbg_printf("Assigning Base Register to %x\n",data);
                     mSlaveBaseRegister = data;
                     mSlaveRegisterAccepted = true;
                     mSlaveOffset = 0;
                     setAckFlag();
                 } else {
+                    u0_dbg_printf("Base Register out of bounds %x\n",data);
                     mSlaveBaseRegister = 0x0;
                     mSlaveRegisterAccepted = false;
                     mSlaveOffset = 0;
@@ -539,5 +545,6 @@ void I2C_Base::resetSlaveFlags() {
     mSlaveOffset = 0;
     mSlaveBaseRegister = 0;
     mSlaveFirstDataReceived = false;
+    mSlaveMode = SLAVE_RX_MODE;
 }
 
