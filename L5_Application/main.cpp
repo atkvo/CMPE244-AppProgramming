@@ -62,8 +62,8 @@ int main(void)
 
     /* Consumes very little CPU, but need highest priority to handle mesh network ACKs */
     scheduler_add_task(new wirelessTask(PRIORITY_CRITICAL));
-    scheduler_add_task(new LightProducer(PRIORITY_MEDIUM));
-    scheduler_add_task(new LightConsumer(PRIORITY_MEDIUM));
+//    scheduler_add_task(new LightProducer(PRIORITY_MEDIUM));
+//    scheduler_add_task(new LightConsumer(PRIORITY_MEDIUM));
 
     /* Change "#if 0" to "#if 1" to run period tasks; @see period_callbacks.cpp */
     #if 0
@@ -86,12 +86,12 @@ int main(void)
     #endif
 
 
-#if 1
+#if 0
       scheduler_add_task(new i2c_task(PRIORITY_MEDIUM));
 #endif
 
 
-#if 0
+#if 1
       scheduler_add_task(new i2c_master_task(PRIORITY_MEDIUM));
 #endif
     /**

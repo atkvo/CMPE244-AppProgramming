@@ -34,7 +34,7 @@ class i2c_task : public scheduler_task {
 public:
 
     // first step is getting slave to recognize its own addresss
-    volatile static uint8_t memory[4];
+    volatile static uint8_t memory[16];
 
     i2c_task(uint8_t priority);
     bool init(void);

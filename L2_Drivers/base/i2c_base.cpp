@@ -266,7 +266,8 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
 
         slaveTransmitBeginAck       = 0xA8,
         dataAckedByMaster           = 0xB8,
-        dataNackedByMaster          = 0xC0
+        dataNackedByMaster          = 0xC0,
+        lastDataAckedByMaster       = 0xC8
 
     };
 
@@ -387,7 +388,7 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
         case slaveAddrAckToMaster:
         {
             uint8_t addr = mpI2CRegs->I2DAT;
-            u0_dbg_printf("State 0x60 -- ADDR: 0x%2x\n", addr);
+//            u0_dbg_printf("State 0x60 -- ADDR: 0x%2x\n", addr);
             setAckFlag();
             clearSIFlag();
             break;
@@ -395,16 +396,16 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
 
         case slaveDataReceived:
         {
-            u0_dbg_printf("State 0x80\n");
+//            u0_dbg_printf("State 0x80\n");
 
             uint8_t data  = mpI2CRegs->I2DAT;
-            u0_dbg_printf("Data: %03x -- ",data);
+//            u0_dbg_printf("Data: %03x -- ",data);
             if (mSlaveRegisterAccepted) {
                 mSlaveFirstDataReceived = true;
                 // Start register already received, current byte is a DATA byte
                 if ((mSlaveBaseRegister + mSlaveOffset) < mSlaveMemSize) {
                     mSlaveMem[mSlaveBaseRegister + mSlaveOffset] = data;
-                    u0_dbg_printf("Slave Offset: %x\n",mSlaveOffset);
+//                    u0_dbg_printf("Slave Offset: %x\n",mSlaveOffset);
                     mSlaveOffset++;
                     setAckFlag();
                 }
@@ -417,13 +418,13 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
                 // Start register not received, current byte is a REG ADDR byte
                 // Make sure initial register is in bounds
                 if (data < mSlaveMemSize ) {
-                    u0_dbg_printf("Assigning Base Register to %x\n",data);
+//                    u0_dbg_printf("Assigning Base Register to %x\n",data);
                     mSlaveBaseRegister = data;
                     mSlaveRegisterAccepted = true;
                     mSlaveOffset = 0;
                     setAckFlag();
                 } else {
-                    u0_dbg_printf("Base Register out of bounds %x\n",data);
+//                    u0_dbg_printf("Base Register out of bounds %x\n",data);
                     mSlaveBaseRegister = 0x0;
                     mSlaveRegisterAccepted = false;
                     mSlaveOffset = 0;
@@ -445,10 +446,10 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
 
         case slaveStopOrRepeatStart:
         {
-            u0_dbg_printf("State 0xA0 -- ");
+//            u0_dbg_printf("State 0xA0 -- ");
             if (mSlaveFirstDataReceived) {
                 // STOP received
-                u0_dbg_printf("Clearing state\n");
+//                u0_dbg_printf("Clearing state\n");
                 mSlaveRegisterAccepted = false;
                 mSlaveOffset = 0;
                 mSlaveBaseRegister = 0;
@@ -456,7 +457,7 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
             }
             else {
                 // REPEAT START received
-                u0_dbg_printf("Set to TX mode\n");
+//                u0_dbg_printf("Set to TX mode\n");
                 mSlaveMode = SLAVE_TX_MODE;
                 setAckFlag();
             }
@@ -468,7 +469,7 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
 
         case slaveTransmitBeginAck:  // check if read address is in bound
         {
-            u0_dbg_printf("State 0xA8\n");
+//            u0_dbg_printf("State 0xA8\n");
             bool lastByte = false;
             if (mSlaveBaseRegister + mSlaveOffset == (mSlaveMemSize - 1)) {
                 lastByte = true;
@@ -492,7 +493,7 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
 
         case dataAckedByMaster:  // check if read address is in bound
         {
-            u0_dbg_printf("State 0xB8\n");
+//            u0_dbg_printf("State 0xB8\n");
             // Load I2DAT from Slave Transmit buffer with data byte.
             bool lastByte = false;
             if (mSlaveBaseRegister + mSlaveOffset == (mSlaveMemSize - 1)) {
@@ -516,9 +517,18 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
 
         case dataNackedByMaster:  // check if read address is in bound
         {
-            u0_dbg_printf("State 0xC0\n");
+//            u0_dbg_printf("State 0xC0\n");
             // Done reading
             resetSlaveFlags();
+            setAckFlag();
+            clearSIFlag();
+            break;
+        }
+        case lastDataAckedByMaster:  // check if read address is in bound
+        {
+//            u0_dbg_printf("State 0xC8\n");
+            // Done reading
+//            resetSlaveFlags();
             setAckFlag();
             clearSIFlag();
             break;
@@ -532,7 +542,9 @@ I2C_Base::mStateMachineStatus_t I2C_Base::i2cStateMachine()
         case readModeNackedBySlave: // no break
         case busError:              // no break
         default:
+//            u0_dbg_printf("State %3x\n",mpI2CRegs->I2STAT);
             mTransaction.error = mpI2CRegs->I2STAT;
+            setAckFlag();
             setStop();
             break;
     }

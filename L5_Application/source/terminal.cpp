@@ -122,6 +122,7 @@ bool terminalTask::taskEntry()
     cp.addHandler(flashProgHandler, "flash", "'flash <filename>' Will flash CPU with this new binary file");
 
     cp.addHandler(taskOpHandler, "task", "control task with 'task suspend <taskname>' or 'task resume <taskname>'");
+    cp.addHandler(i2demoHandler, "i2", "control task with 'i2 buttons' or 'i2 accel'");
 
 
     #if (SYS_CFG_ENABLE_TLM)

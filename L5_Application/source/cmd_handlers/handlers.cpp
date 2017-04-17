@@ -45,7 +45,7 @@
 #include "c_tlm_stream.h"
 #include "c_tlm_var.h"
 
-
+#include "i2c_master_task.hpp"
 
 CMD_HANDLER_FUNC(taskListHandler)
 {
@@ -626,6 +626,14 @@ CMD_HANDLER_FUNC(taskOpHandler) {
         printf("task \"%s\" does not exist\n", cmdParams.c_str());
     }
     return true;
+}
+
+CMD_HANDLER_FUNC(i2demoHandler) {
+    if(cmdParams == "accel") {
+        i2c_master_task::setMode(accel);
+    } else if (cmdParams == "button") {
+        i2c_master_task::setMode(button);
+    }
 }
 
 #if (SYS_CFG_ENABLE_TLM)

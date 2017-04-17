@@ -86,5 +86,6 @@ CMD_HANDLER_FUNC(wirelessHandler);
 
 CMD_HANDLER_FUNC(taskOpHandler);
 
+CMD_HANDLER_FUNC(i2demoHandler);
 
 #endif /* HANDLERS_HPP_ */
